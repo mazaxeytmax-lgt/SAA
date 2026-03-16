@@ -1,0 +1,43 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "MazAxe Hub",
+   LoadingTitle = "MazAxe Hub",
+   LoadingSubtitle = "By MazAxeYT",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "MazAxeHub",
+      FileName = "Config"
+   },
+   KeySystem = false
+})
+
+-- TAB
+local Tab = Window:CreateTab("Main ✔", 4483362458)
+
+-- HITBOX SLIDER (UI)
+Tab:CreateSlider({
+   Name = "Hitbox Size",
+   Range = {1,20},
+   Increment = 1,
+   CurrentValue = 5,
+   Callback = function(Value)
+      print("Hitbox Size:", Value)
+   end,
+})
+
+-- ESP BOX TOGGLE (UI)
+Tab:CreateToggle({
+   Name = "ESP Box",
+   CurrentValue = false,
+   Callback = function(Value)
+      print("ESP Box:", Value)
+   end,
+})
+
+-- NOTIFICACIÓN
+Rayfield:Notify({
+   Title = "MazAxe Hub",
+   Content = "Panel cargado correctamente",
+   Duration = 5
+})
