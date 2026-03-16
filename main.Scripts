@@ -1,0 +1,170 @@
+--[[
+    MENU ESTILO HITBOX & GELO INVERTIDO
+    Inspirado en la captura: Botones ON/OFF y Sliders funcionales.
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- CONFIGURACIÓN INICIAL
+local Settings = {
+    GeloInvertido = false,
+    HitboxEnabled = false,
+    HitboxSize = 10,
+    HitboxTransparency = 0.5
+}
+
+-- CREACIÓN DE LA UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "HitboxMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 250, 0, 320)
+mainFrame.Position = UDim2.new(0.5, -125, 0.5, -160)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
+
+-- TÍTULO
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "MENU PREMIUM"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Parent = mainFrame
+
+-- FUNCIÓN PARA CREAR BOTONES ON/OFF
+local function createToggleButton(name, pos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.8, 0, 0, 35)
+    btn.Position = UDim2.new(0.1, 0, 0, pos)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.Text = name .. ": OFF"
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.Parent = mainFrame
+    
+    local bCorner = Instance.new("UICorner")
+    bCorner.CornerRadius = UDim.new(0, 5)
+    bCorner.Parent = btn
+
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = name .. ": " .. (state and "ON" or "OFF")
+        btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(30, 30, 30)
+        callback(state)
+    end)
+end
+
+-- FUNCIÓN PARA CREAR SLIDERS
+local function createSlider(name, pos, min, max, callback)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.8, 0, 0, 20)
+    label.Position = UDim2.new(0.1, 0, 0, pos)
+    label.Text = name .. ": " .. min
+    label.TextColor3 = Color3.fromRGB(200, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Small
+    label.Parent = mainFrame
+
+    local sliderBg = Instance.new("Frame")
+    sliderBg.Size = UDim2.new(0.8, 0, 0, 5)
+    sliderBg.Position = UDim2.new(0.1, 0, 0, pos + 22)
+    sliderBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    sliderBg.Parent = mainFrame
+
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Size = UDim2.new(0.5, 0, 1, 0)
+    sliderFill.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    sliderFill.BorderSizePixel = 0
+    sliderFill.Parent = sliderBg
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 15, 0, 15)
+    btn.Position = UDim2.new(0.5, -7, 0.5, -7)
+    btn.Text = ""
+    btn.BackgroundColor3 = Color3.new(1, 1, 1)
+    btn.Parent = sliderBg
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+
+    local dragging = false
+
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+    end)
+
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        if dragging then
+            local pos = math.clamp((mouse.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+            sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+            btn.Position = UDim2.new(pos, -7, 0.5, -7)
+            local value = math.floor(min + (max - min) * pos)
+            label.Text = name .. ": " .. value
+            callback(value)
+        end
+    end)
+end
+
+-- LÓGICA DE LAS FUNCIONES
+createToggleButton("GELO INVERTIDO", 50, function(val)
+    Settings.GeloInvertido = val
+end)
+
+createToggleButton("HITBOX", 95, function(val)
+    Settings.HitboxEnabled = val
+end)
+
+createSlider("LARGURA", 150, 2, 20, function(val)
+    Settings.HitboxSize = val
+end)
+
+createSlider("ALTURA", 200, 2, 20, function(val)
+    -- Podrías separar altura y anchura si lo deseas
+    Settings.HitboxSize = val
+end)
+
+-- BUCLE DE HITBOX (FUNCIONAMIENTO REAL)
+RunService.RenderStepped:Connect(function()
+    if Settings.HitboxEnabled then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(Settings.HitboxSize, Settings.HitboxSize, Settings.HitboxSize)
+                v.Character.HumanoidRootPart.Transparency = Settings.HitboxTransparency
+                v.Character.HumanoidRootPart.Color = Color3.fromRGB(200, 0, 0)
+                v.Character.HumanoidRootPart.CanCollide = false
+            end
+        end
+    else
+        -- Resetear cuando se apaga
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                v.Character.HumanoidRootPart.Transparency = 1
+            end
+        end
+    end
+end)
+
+-- BOTÓN PARA CERRAR/ABRIR CON "K" (Opcional)
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.K then
+        mainFrame.Visible = not mainFrame.Visible
+    end
+end)
