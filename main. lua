@@ -1,0 +1,20 @@
+local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
+
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0,200,0,250)
+Frame.Position = UDim2.new(0.7,0,0.3,0)
+Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+
+local HitboxButton = Instance.new("TextButton", Frame)
+HitboxButton.Size = UDim2.new(1,-20,0,40)
+HitboxButton.Position = UDim2.new(0,10,0,20)
+HitboxButton.Text = "HITBOX: OFF"
+HitboxButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
+
+HitboxButton.MouseButton1Click:Connect(function()
+	if HitboxButton.Text == "HITBOX: OFF" then
+		HitboxButton.Text = "HITBOX: ON"
+	else
+		HitboxButton.Text = "HITBOX: OFF"
+	end
+end)
