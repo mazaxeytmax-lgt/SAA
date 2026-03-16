@@ -1,0 +1,170 @@
+--[[
+    MENU NINJA V6 - ESPECIAL HITBOX HEAD & ESP BOX
+    - Hitbox Head Anti-Ban (Límite estricto 10).
+    - ESP Box (Ver enemigos tras paredes).
+    - Sistema de Bola Ninja para minimizar.
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- CONFIGURACIÓN
+local Config = {
+    HitboxHead = false,
+    HeadSize = 5,
+    ESPEnabled = false,
+    BoxColor = Color3.fromRGB(255, 0, 0)
+}
+
+-- INTERFAZ
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+screenGui.Name = "NinjaPremiumV6"
+screenGui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Size = UDim2.new(0, 240, 0, 320)
+mainFrame.Position = UDim2.new(0.5, -120, 0.4, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local corner = Instance.new("UICorner", mainFrame)
+corner.CornerRadius = UDim.new(0, 10)
+
+-- MINIMIZAR / BOLA NINJA
+local ball = Instance.new("ImageButton", screenGui)
+ball.Size = UDim2.new(0, 50, 0, 50)
+ball.Position = UDim2.new(0.1, 0, 0.5, -25)
+ball.Image = "rbxassetid://6031225818"
+ball.Visible = false
+ball.Draggable = true
+Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
+
+local minBtn = Instance.new("TextButton", mainFrame)
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -35, 0, 5)
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.new(1,1,1)
+minBtn.BackgroundTransparency = 1
+minBtn.TextSize = 25
+
+minBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    ball.Visible = true
+end)
+
+ball.MouseButton1Click:Connect(function()
+    ball.Visible = false
+    mainFrame.Visible = true
+end)
+
+-- LÓGICA HITBOX HEAD (LIMITADA A 10)
+RunService.Heartbeat:Connect(function()
+    if Config.HitboxHead then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+                local head = v.Character.Head
+                head.Size = Vector3.new(Config.HeadSize, Config.HeadSize, Config.HeadSize)
+                head.Transparency = 0.7
+                head.Material = Enum.Material.ForceField -- Anti-Detección
+                head.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- LÓGICA ESP BOX (HIGHLIGHTS)
+local function ApplyESP()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= player and v.Character then
+            local highlight = v.Character:FindFirstChild("ESP_Highlight")
+            if Config.ESPEnabled then
+                if not highlight then
+                    highlight = Instance.new("Highlight")
+                    highlight.Name = "ESP_Highlight"
+                    highlight.Parent = v.Character
+                end
+                highlight.FillColor = Config.BoxColor
+                highlight.FillAlpha = 0.5
+                highlight.OutlineColor = Color3.new(1, 1, 1)
+                highlight.OutlineAlpha = 0
+            else
+                if highlight then highlight:Destroy() end
+            end
+        end
+    end
+end
+
+RunService.Heartbeat:Connect(ApplyESP)
+
+-- COMPONENTES DEL MENÚ
+local function addToggle(txt, y, conf)
+    local b = Instance.new("TextButton", mainFrame)
+    b.Size = UDim2.new(0.85, 0, 0, 40)
+    b.Position = UDim2.new(0.075, 0, 0, y)
+    b.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    b.Text = txt .. ": OFF"
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamSemibold
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    
+    b.MouseButton1Click:Connect(function()
+        Config[conf] = not Config[conf]
+        b.Text = txt .. ": " .. (Config[conf] and "ON" or "OFF")
+        b.BackgroundColor3 = Config[conf] and Color3.fromRGB(180, 0, 0) or Color3.fromRGB(25, 25, 25)
+        
+        -- Reset al apagar
+        if conf == "HitboxHead" and not Config.HitboxHead then
+            for _, v in pairs(Players:GetPlayers()) do
+                if v.Character and v.Character:FindFirstChild("Head") then
+                    v.Character.Head.Size = Vector3.new(1.2, 1.2, 1.2)
+                    v.Character.Head.Transparency = 0
+                end
+            end
+        end
+    end)
+end
+
+local function addSlider(txt, y)
+    local l = Instance.new("TextLabel", mainFrame)
+    l.Size = UDim2.new(1, 0, 0, 20)
+    l.Position = UDim2.new(0, 0, 0, y)
+    l.Text = txt .. ": " .. Config.HeadSize
+    l.TextColor3 = Color3.new(1, 1, 1)
+    l.BackgroundTransparency = 1
+    
+    local s = Instance.new("Frame", mainFrame)
+    s.Size = UDim2.new(0.7, 0, 0, 4)
+    s.Position = UDim2.new(0.15, 0, 0, y + 25)
+    s.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    
+    local f = Instance.new("Frame", s)
+    f.Size = UDim2.new(0.5, 0, 1, 0)
+    f.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    f.BorderSizePixel = 0
+
+    local drag = false
+    s.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then drag = true end end)
+    UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then drag = false end end)
+
+    RunService.RenderStepped:Connect(function()
+        if drag then
+            local mp = UserInputService:GetMouseLocation().X
+            local pct = math.clamp((mp - s.AbsolutePosition.X) / s.AbsoluteSize.X, 0, 1)
+            -- LÍMITE DE 10 PARA ANTI-BAN
+            Config.HeadSize = math.floor(1 + (9 * pct)) 
+            f.Size = UDim2.new(pct, 0, 1, 0)
+            l.Text = txt .. ": " .. Config.HeadSize
+        end
+    end)
+end
+
+-- INICIALIZACIÓN
+addToggle("HITBOX HEAD", 60, "HitboxHead")
+addToggle("ESP BOX", 110, "ESPEnabled")
+addSlider("TAMANO CABEZA (MAX 10)", 175)
+
+print("Menu Ninja V6 - Solo Hitbox & ESP Cargado.")
