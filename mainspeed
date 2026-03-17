@@ -1,0 +1,60 @@
+-- Configuración
+local velocidadActivada = 100 -- Velocidad cuando está en ON
+local velocidadNormal = 16   -- Velocidad normal de Roblox
+local estado = false         -- Estado inicial (OFF)
+
+-- Crear la Interfaz (GUI)
+local screenGui = Instance.new("ScreenGui")
+local button = Instance.new("TextButton")
+
+screenGui.Name = "SpeedToggleGui"
+screenGui.Parent = game.CoreGui -- Se usa CoreGui para que no se borre al morir
+
+-- Estilo del Botón
+button.Name = "ToggleButton"
+button.Parent = screenGui
+button.Size = UDim2.new(0, 100, 0, 50)
+button.Position = UDim2.new(0.5, -50, 0.1, 0) -- Aparece arriba al centro
+button.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Rojo inicial (OFF)
+button.Text = "SPEED: OFF"
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 20
+
+-- Hacer el botón redondeado
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = button
+
+-- Función de Activación/Desactivación
+button.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        estado = not estado -- Cambia el estado (de true a false o viceversa)
+
+        if estado then
+            -- Modo ON
+            humanoid.WalkSpeed = velocidadActivada
+            button.Text = "SPEED: ON"
+            button.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Verde
+        else
+            -- Modo OFF
+            humanoid.WalkSpeed = velocidadNormal
+            button.Text = "SPEED: OFF"
+            button.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Rojo
+        end
+    end
+end)
+
+-- Asegurar que la velocidad se mantenga si el personaje reaparece
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    if estado then
+        humanoid.WalkSpeed = velocidadActivada
+    else
+        humanoid.WalkSpeed = velocidadNormal
+    end
+end)
