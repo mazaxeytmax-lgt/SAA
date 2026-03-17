@@ -1,0 +1,139 @@
+-- [[ PANEL FF - DARK RED & BLUE EDITION ]]
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local MainFrame = Instance.new("Frame", ScreenGui)
+local Container = Instance.new("ScrollingFrame", MainFrame)
+local UIListLayout = Instance.new("UIListLayout", Container)
+
+-- DISEÑO DEL PANEL (Rojo Oscuro + Borde Azul)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 0, 0) -- Rojo Dark
+MainFrame.BorderSizePixel = 3
+MainFrame.BorderColor3 = Color3.fromRGB(0, 150, 255) -- Azul Eléctrico
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 210, 0, 310)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- TÍTULO
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+Title.Text = "PANEL FF 🔴🔵"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.TextSize = 18
+
+-- SISTEMA DE KEY ALEATORIA
+local KeyFrame = Instance.new("Frame", MainFrame)
+KeyFrame.Size = UDim2.new(1, 0, 1, -35)
+KeyFrame.Position = UDim2.new(0, 0, 0, 35)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
+KeyFrame.ZIndex = 5
+
+local GenBtn = Instance.new("TextButton", KeyFrame)
+GenBtn.Size = UDim2.new(0, 180, 0, 40)
+GenBtn.Position = UDim2.new(0.5, -90, 0.3, 0)
+GenBtn.Text = "GENERAR Y COPIAR KEY"
+GenBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 180)
+GenBtn.TextColor3 = Color3.new(1,1,1)
+
+local currentKey = ""
+GenBtn.MouseButton1Click:Connect(function()
+    currentKey = "FF-" .. math.random(1000, 9999)
+    setclipboard(currentKey)
+    GenBtn.Text = "KEY: " .. currentKey .. " (Copiado)"
+    wait(1)
+    KeyFrame.Visible = false -- Desbloquea el panel
+end)
+
+-- CONTENEDOR DE FUNCIONES
+Container.Size = UDim2.new(1, -10, 1, -50)
+Container.Position = UDim2.new(0, 5, 0, 45)
+Container.BackgroundTransparency = 1
+UIListLayout.Padding = UDim.new(0, 5)
+
+local function AddToggle(name, callback)
+    local btn = Instance.new("TextButton", Container)
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BorderSizePixel = 0
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(80, 0, 0)
+        callback(state)
+    end)
+end
+
+-- 1. AIMBOT (Seguimiento suave a la cabeza)
+AddToggle("Aimbot Head", function(state)
+    _G.Aimbot = state
+    local player = game.Players.LocalPlayer
+    local mouse = player:GetMouse()
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if _G.Aimbot then
+            local closest = nil
+            local dist = math.huge
+            for _, v in pairs(game.Players:GetPlayers()) do
+                if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+                    local pos = workspace.CurrentCamera:WorldToViewportPoint(v.Character.Head.Position)
+                    local magnitude = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).magnitude
+                    if magnitude < dist then
+                        closest = v
+                        dist = magnitude
+                    end
+                end
+            end
+            if closest then
+                workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, closest.Character.Head.Position)
+            end
+        end
+    end)
+end)
+
+-- 2. ESP BOX MORADO 🟣
+AddToggle("ESP Box Morado", function(state)
+    _G.ESP = state
+    while _G.ESP do
+        task.wait(0.5)
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                if not v.Character:FindFirstChild("ESPB") then
+                    local box = Instance.new("BoxHandleAdornment", v.Character)
+                    box.Name = "ESPB"
+                    box.Adornee = v.Character
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 10
+                    box.Size = v.Character:GetExtentsSize()
+                    box.Color3 = Color3.fromRGB(150, 0, 255) -- Morado solicitado
+                    box.Transparency = 0.5
+                end
+            end
+        end
+        if not _G.ESP then
+            for _, v in pairs(game.Players:GetPlayers()) do
+                if v.Character and v.Character:FindFirstChild("ESPB") then v.Character.ESPB:Destroy() end
+            end
+        end
+    end
+end)
+
+-- 3. HITBOX 10
+AddToggle("Hitbox 10", function(state)
+    _G.HB = state
+    while _G.HB do
+        task.wait(0.3)
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
+                v.Character.Head.Size = Vector3.new(10, 10, 10)
+                v.Character.Head.Transparency = 0.6
+                v.Character.Head.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- 4. SPEED 20
+AddToggle("Speed 20", function(s)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s and 20 or 16
+end)
