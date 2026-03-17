@@ -1,0 +1,207 @@
+-- [ VARIABLES Y CONFIGURACIÓN ] --
+local keyGenerada = tostring(math.random(1000, 9999)) .. "-NEON"
+local noclipActive = false
+local silentAimActive = false
+local tpClickEnabled = false
+local menuVisible = true
+
+local Player = game.Players.LocalPlayer
+local Mouse = Player:GetMouse()
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+-- [ GUI PRINCIPAL ] --
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NeonHubUltimate"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- === CUADRO DE KEY MOVIBLE ===
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0, 260, 0, 180)
+KeyFrame.Position = UDim2.new(0.5, -130, 0.4, 0)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+KeyFrame.Active = true
+KeyFrame.Draggable = true -- KEY MOVIBLE
+KeyFrame.Parent = ScreenGui
+
+local KeyStroke = Instance.new("UIStroke", KeyFrame)
+KeyStroke.Color = Color3.fromRGB(0, 255, 255)
+KeyStroke.Thickness = 2
+Instance.new("UICorner", KeyFrame)
+
+local KeyInput = Instance.new("TextBox")
+KeyInput.Size = UDim2.new(0.8, 0, 0, 35)
+KeyInput.Position = UDim2.new(0.1, 0, 0.2, 0)
+KeyInput.PlaceholderText = "Pega la Key aquí..."
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeyInput.TextColor3 = Color3.new(1,1,1)
+KeyInput.Parent = KeyFrame
+
+local GenBtn = Instance.new("TextButton")
+GenBtn.Size = UDim2.new(0.8, 0, 0, 30)
+GenBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
+GenBtn.Text = "Generar Key (Copiar)"
+GenBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+GenBtn.Parent = KeyFrame
+
+local LoginBtn = Instance.new("TextButton")
+LoginBtn.Size = UDim2.new(0.8, 0, 0, 35)
+LoginBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
+LoginBtn.Text = "INGRESAR"
+LoginBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+LoginBtn.TextColor3 = Color3.new(1,1,1)
+LoginBtn.Parent = KeyFrame
+
+-- === MENÚ PRINCIPAL ===
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 220, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -110, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+Instance.new("UICorner", MainFrame)
+local MainStroke = Instance.new("UIStroke", MainFrame)
+MainStroke.Color = Color3.fromRGB(0, 255, 255)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "NEON ULTIMATE"
+Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+Title.BackgroundTransparency = 1
+Title.Parent = MainFrame
+
+-- BOTÓN MINIMIZAR
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -35, 0, 5)
+MinBtn.Text = "-"
+MinBtn.TextColor3 = Color3.new(1,1,1)
+MinBtn.BackgroundTransparency = 1
+MinBtn.TextSize = 25
+MinBtn.Parent = MainFrame
+
+MinBtn.MouseButton1Click:Connect(function()
+    menuVisible = not menuVisible
+    MainFrame:TweenSize(menuVisible and UDim2.new(0, 220, 0, 360) or UDim2.new(0, 220, 0, 40))
+    for _, v in pairs(MainFrame:GetChildren()) do
+        if v:IsA("TextButton") then v.Visible = menuVisible end
+    end
+end)
+
+-- FUNCIÓN GENERADORA DE BOTONES
+local function CreateBtn(txt, pos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.85, 0, 0, 35)
+    btn.Position = UDim2.new(0.07, 0, 0, pos)
+    btn.Text = txt
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = MainFrame
+    Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- [ LÓGICA SILENT AIM ] --
+local function GetClosestPlayer()
+    local target = nil
+    local dist = math.huge
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            local pos = v.Character.HumanoidRootPart.Position
+            local magnitude = (pos - Player.Character.HumanoidRootPart.Position).magnitude
+            if magnitude < dist then
+                dist = magnitude
+                target = v
+            end
+        end
+    end
+    return target
+end
+
+-- Hook para Silent Aim (Redirige el Mouse.Hit)
+local mt = getrawmetatable(game)
+setreadonly(mt, false)
+local old = mt.__index
+
+mt.__index = newcclosure(function(t, k)
+    if silentAimActive and t == Mouse and (k == "Hit" or k == "Target") then
+        local target = GetClosestPlayer()
+        if target and target.Character then
+            return (k == "Hit" and target.Character.HumanoidRootPart.CFrame or target.Character.HumanoidRootPart)
+        end
+    end
+    return old(t, k)
+end)
+setreadonly(mt, true)
+
+-- [ BOTONES ] --
+CreateBtn("Silent Aim: OFF/ON", 50, function()
+    silentAimActive = not silentAimActive
+    print("Silent Aim: "..tostring(silentAimActive))
+end)
+
+CreateBtn("Hitbox: ON/OFF", 100, function()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= Player and p.Character then
+            p.Character.HumanoidRootPart.Size = Vector3.new(10,10,10)
+            p.Character.HumanoidRootPart.Transparency = 0.7
+        end
+    end
+end)
+
+CreateBtn("Speed 100", 150, function()
+    Player.Character.Humanoid.WalkSpeed = 100
+end)
+
+CreateBtn("Noclip", 200, function()
+    noclipActive = not noclipActive
+end)
+
+CreateBtn("TP Click: ON/OFF", 250, function()
+    tpClickEnabled = not tpClickEnabled
+end)
+
+CreateBtn("Invisible", 300, function()
+    for _, v in pairs(Player.Character:GetDescendants()) do
+        if v:IsA("BasePart") then v.Transparency = 1 end
+    end
+end)
+
+-- [ EVENTOS ] --
+Mouse.Button1Down:Connect(function()
+    if tpClickEnabled then
+        Player.Character:SetPrimaryPartCFrame(CFrame.new(Mouse.Hit.p + Vector3.new(0,3,0)))
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    if noclipActive then
+        for _, v in pairs(Player.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
+end)
+
+-- [ LÓGICA KEY ] --
+GenBtn.MouseButton1Click:Connect(function()
+    setclipboard(keyGenerada)
+    GenBtn.Text = "¡COPIADA!"
+    wait(1)
+    GenBtn.Text = "Generar Key (Copiar)"
+end)
+
+LoginBtn.MouseButton1Click:Connect(function()
+    if KeyInput.Text == keyGenerada then
+        KeyFrame.Visible = false
+        MainFrame.Visible = true
+    else
+        LoginBtn.Text = "INCORRECTA"
+        wait(1)
+        LoginBtn.Text = "INGRESAR"
+    end
+end)
