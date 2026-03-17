@@ -1,0 +1,90 @@
+--[[
+    mazHub - VERSIÓN FINAL RAYFIELD
+    Diseño: Teal/Dark (Fiel a la captura)
+    Funciones: Hitbox (Slider 20), Aimbot Toggle
+]]
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Ventana Principal
+local Window = Rayfield:CreateWindow({
+   Name = "mazHub | Premium",
+   LoadingTitle = "Iniciando mazHub...",
+   LoadingSubtitle = "by MazAxeYT",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "mazHubConfig",
+      FileName = "Main"
+   },
+   KeySystem = false 
+})
+
+-- NOTIFICACIÓN DE CARGA (mazHub cargado)
+Rayfield:Notify({
+   Title = "mazHub cargado",
+   Content = "Bienvenido de nuevo, el script está listo.",
+   Duration = 5,
+   Image = 4483345998,
+})
+
+-- PESTAÑA: COMBAT
+local CombatTab = Window:CreateTab("Combat ⚔️", 4483362458)
+
+CombatTab:CreateSection("Main Combat")
+
+-- Toggle de Aimbot (Visual/Placeholder)
+CombatTab:CreateToggle({
+   Name = "Aimbot",
+   CurrentValue = false,
+   Flag = "AimbotToggle",
+   Callback = function(Value)
+      -- Aquí puedes insertar tu lógica de Aimbot personalizada
+   end,
+})
+
+-- Slider de Hitbox (Límite 20)
+CombatTab:CreateSlider({
+   Name = "Hitbox Size",
+   Range = {2, 20},
+   Increment = 1,
+   Suffix = " studs",
+   CurrentValue = 2,
+   Flag = "HitboxSlider",
+   Callback = function(Value)
+      -- Lógica de Hitbox Expander
+      _G.HitboxSize = Value
+      _G.HitboxEnabled = true
+   end,
+})
+
+-- PESTAÑA: SETTINGS
+local SettingsTab = Window:CreateTab("Settings ⚙️", 4483362458)
+
+SettingsTab:CreateSection("Configuración")
+
+SettingsTab:CreateKeybind({
+   Name = "Cerrar Menú",
+   CurrentKeybind = "RightShift",
+   HoldToInteract = false,
+   Flag = "CloseKey",
+   Callback = function(Keybind)
+      Rayfield:Destroy()
+   end,
+})
+
+SettingsTab:CreateLabel("mazHub v1.2 - MazAxeYT")
+
+-- LÓGICA DE HITBOX (LOOP)
+task.spawn(function()
+    while task.wait(1) do
+        if _G.HitboxEnabled then
+            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                    player.Character.HumanoidRootPart.Transparency = 0.7
+                    player.Character.HumanoidRootPart.CanCollide = false
+                end
+            end
+        end
+    end
+end)
