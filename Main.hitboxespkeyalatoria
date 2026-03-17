@@ -1,0 +1,144 @@
+-- Configuración de Colores
+local NeonColor = Color3.fromRGB(0, 255, 255)
+local DarkBg = Color3.fromRGB(15, 15, 15)
+
+-- Generador de Key Aleatoria
+local generatedKey = tostring(math.random(1000, 9999)) .. "-DELTA-LUA"
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+
+-- === SISTEMA DE KEY (LOGIN) ===
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0, 250, 0, 180)
+KeyFrame.Position = UDim2.new(0.5, -125, 0.4, 0)
+KeyFrame.BackgroundColor3 = DarkBg
+KeyFrame.BorderSizePixel = 0
+KeyFrame.Parent = ScreenGui
+
+local UICornerKey = Instance.new("UICorner", KeyFrame)
+local UIStrokeKey = Instance.new("UIStroke", KeyFrame)
+UIStrokeKey.Color = NeonColor
+UIStrokeKey.Thickness = 2
+
+local KeyInput = Instance.new("TextBox")
+KeyInput.Size = UDim2.new(0.8, 0, 0, 35)
+KeyInput.Position = UDim2.new(0.1, 0, 0.2, 0)
+KeyInput.PlaceholderText = "Pega la Key aquí..."
+KeyInput.Text = ""
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeyInput.TextColor3 = Color3.new(1,1,1)
+KeyInput.Parent = KeyFrame
+
+local GenKeyBtn = Instance.new("TextButton")
+GenKeyBtn.Size = UDim2.new(0.8, 0, 0, 30)
+GenKeyBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
+GenKeyBtn.Text = "Generar Key (Copiar)"
+GenKeyBtn.BackgroundColor3 = NeonColor
+GenKeyBtn.TextColor3 = DarkBg
+GenKeyBtn.Parent = KeyFrame
+
+local EnterBtn = Instance.new("TextButton")
+EnterBtn.Size = UDim2.new(0.8, 0, 0, 35)
+EnterBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
+EnterBtn.Text = "INGRESAR AL MENÚ"
+EnterBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+EnterBtn.TextColor3 = Color3.new(1,1,1)
+EnterBtn.Parent = KeyFrame
+
+-- Lógica de la Key
+GenKeyBtn.MouseButton1Click:Connect(function()
+    setclipboard(generatedKey) -- Copia al portapapeles
+    GenKeyBtn.Text = "¡COPIADO!"
+    wait(1)
+    GenKeyBtn.Text = "Generar Key (Copiar)"
+end)
+
+-- === MENÚ PRINCIPAL (OCULTO AL INICIO) ===
+local MainMenu = Instance.new("Frame")
+MainMenu.Size = UDim2.new(0, 200, 0, 250)
+MainMenu.Position = UDim2.new(0.5, -100, 0.4, 0)
+MainMenu.BackgroundColor3 = DarkBg
+MainMenu.Visible = false
+MainMenu.Active = true
+MainMenu.Draggable = true
+MainMenu.Parent = ScreenGui
+
+Instance.new("UICorner", MainMenu)
+local MainStroke = Instance.new("UIStroke", MainMenu)
+MainStroke.Color = NeonColor
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "NEON CHEATS"
+Title.TextColor3 = NeonColor
+Title.BackgroundTransparency = 1
+Title.Parent = MainMenu
+
+-- Función para Botones del Menú
+local function CreateMenuBtn(txt, pos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.8, 0, 0, 35)
+    btn.Position = UDim2.new(0.1, 0, 0, pos)
+    btn.Text = txt
+    btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = MainMenu
+    Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- Variables de Estado
+local noclip = false
+local espActive = false
+
+-- FUNCIONES
+CreateMenuBtn("Hitbox (Grande)", 60, function()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= game.Players.LocalPlayer and p.Character then
+            p.Character.HumanoidRootPart.Size = Vector3.new(10, 10, 10)
+            p.Character.HumanoidRootPart.Transparency = 0.7
+            p.Character.HumanoidRootPart.Color = NeonColor
+        end
+    end
+end)
+
+CreateMenuBtn("ESP (Cajas)", 110, function()
+    espActive = not espActive
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= game.Players.LocalPlayer and p.Character then
+            if not p.Character:FindFirstChild("Highlight") then
+                local hl = Instance.new("Highlight", p.Character)
+                hl.FillColor = NeonColor
+            else
+                p.Character.Highlight:Destroy()
+            end
+        end
+    end
+end)
+
+CreateMenuBtn("Noclip", 160, function()
+    noclip = not noclip
+end)
+
+-- Bucle Noclip
+game:GetService("RunService").Stepped:Connect(function()
+    if noclip then
+        for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
+end)
+
+-- Acción al dar click en INGRESAR
+EnterBtn.MouseButton1Click:Connect(function()
+    if KeyInput.Text == generatedKey then
+        KeyFrame.Visible = false
+        MainMenu.Visible = true
+    else
+        EnterBtn.Text = "KEY INCORRECTA"
+        wait(1)
+        EnterBtn.Text = "INGRESAR AL MENÚ"
+    end
+end)
+  
