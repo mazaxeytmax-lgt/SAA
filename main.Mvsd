@@ -1,0 +1,175 @@
+-- MAZAXE YT PRIVATE HUB | ULTRA NEON EDITION
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local LP = Players.LocalPlayer
+
+-- 1. PANTALLA DE CARGA Y SISTEMA DE KEY
+local KeyGui = Instance.new("ScreenGui", CoreGui)
+local KeyMain = Instance.new("Frame", KeyGui)
+KeyMain.Size = UDim2.new(0, 350, 0, 200)
+KeyMain.Position = UDim2.new(0.5, -175, 0.5, -100)
+KeyMain.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+Instance.new("UIStroke", KeyMain).Color = Color3.fromRGB(0, 255, 255)
+Instance.new("UICorner", KeyMain)
+
+local KeyTitle = Instance.new("TextLabel", KeyMain)
+KeyTitle.Size = UDim2.new(1, 0, 0, 40)
+KeyTitle.Text = "MAZAXE YT | KEY SYSTEM"
+KeyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.BackgroundTransparency = 1
+
+local KeyBox = Instance.new("TextBox", KeyMain)
+KeyBox.Size = UDim2.new(0, 280, 0, 40)
+KeyBox.Position = UDim2.new(0.5, -140, 0.3, 0)
+KeyBox.PlaceholderText = "Pega tu Key aquí..."
+KeyBox.Text = ""
+KeyBox.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+KeyBox.TextColor3 = Color3.fromRGB(0, 255, 255)
+Instance.new("UICorner", KeyBox)
+
+local GeneratedKey = ""
+local function GenerateRandomKey()
+    local chars = "ABCDEFGHIJKLMN123456789"
+    local length = 10
+    local key = ""
+    for i = 1, length do
+        local rand = math.random(1, #chars)
+        key = key .. string.sub(chars, rand, rand)
+    end
+    return key
+end
+
+local GenBtn = Instance.new("TextButton", KeyMain)
+GenBtn.Size = UDim2.new(0, 135, 0, 35)
+GenBtn.Position = UDim2.new(0.08, 0, 0.6, 0)
+GenBtn.Text = "Generar Key"
+GenBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+GenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", GenBtn)
+
+GenBtn.MouseButton1Click:Connect(function()
+    GeneratedKey = GenerateRandomKey()
+    setclipboard(GeneratedKey) -- Copia la key al portapapeles automáticamente
+    KeyBox.Text = GeneratedKey
+end)
+
+local EnterBtn = Instance.new("TextButton", KeyMain)
+EnterBtn.Size = UDim2.new(0, 135, 0, 35)
+EnterBtn.Position = UDim2.new(0.53, 0, 0.6, 0)
+EnterBtn.Text = "ENTRAR"
+EnterBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
+EnterBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", EnterBtn)
+
+-- 2. MENÚ PRINCIPAL (SE ACTIVA AL PONER LA KEY)
+EnterBtn.MouseButton1Click:Connect(function()
+    if KeyBox.Text == GeneratedKey and GeneratedKey ~= "" then
+        KeyGui:Destroy()
+        -- AQUÍ EMPIEZA EL MENÚ PRINCIPAL
+        local Orion = Instance.new("ScreenGui", CoreGui)
+        local Main = Instance.new("Frame", Orion)
+        Main.Size = UDim2.new(0, 420, 0, 320)
+        Main.Position = UDim2.new(0.5, -210, 0.5, -160)
+        Main.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+        Main.Active = true
+        Main.Draggable = true
+        Instance.new("UIStroke", Main).Color = Color3.fromRGB(0, 255, 255)
+        Instance.new("UICorner", Main)
+
+        local Title = Instance.new("TextLabel", Main)
+        Title.Size = UDim2.new(1, 0, 0, 50)
+        Title.Text = "  MAZAXE YT | BRAINROT HUB"
+        Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Title.Font = Enum.Font.GothamBold
+        Title.TextXAlignment = Enum.TextXAlignment.Left
+        Title.BackgroundTransparency = 1
+
+        local Content = Instance.new("ScrollingFrame", Main)
+        Content.Size = UDim2.new(1, -20, 1, -70)
+        Content.Position = UDim2.new(0, 10, 0, 55)
+        Content.BackgroundTransparency = 1
+        Content.ScrollBarThickness = 3
+        Content.CanvasSize = UDim2.new(0, 0, 2.5, 0) -- SCROLLING INFINITO
+        Instance.new("UIListLayout", Content).Padding = UDim.new(0, 8)
+
+        local function AddHack(name, callback)
+            local btn = Instance.new("TextButton", Content)
+            btn.Size = UDim2.new(1, -5, 0, 40)
+            btn.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+            btn.Text = name
+            btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+            Instance.new("UICorner", btn)
+            btn.MouseButton1Click:Connect(callback)
+        end
+
+        -- HACKS
+        AddHack("Equipar Animación Zombie", function()
+            local char = LP.Character
+            char.Animate.idle.Animation1.AnimationId = "rbxassetid://616158929"
+            char.Animate.run.RunAnim.AnimationId = "rbxassetid://616163682"
+            char.Animate.walk.WalkAnim.AnimationId = "rbxassetid://616168032"
+            print("Animación Zombie Equipada")
+        end)
+
+        AddHack("Hitbox 20 (Permanente)", function()
+            _G.HB = true
+            while _G.HB do
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= LP and v.Character then
+                        v.Character.HumanoidRootPart.Size = Vector3.new(20,20,20)
+                        v.Character.HumanoidRootPart.Transparency = 0.7
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+
+        AddHack("SpinBot 300 Speed", function()
+            local s = Instance.new("BodyAngularVelocity", LP.Character.HumanoidRootPart)
+            s.MaxTorque = Vector3.new(0, math.huge, 0)
+            s.AngularVelocity = Vector3.new(0, 300, 0)
+        end)
+
+        AddHack("ESP Chams Permanente", function()
+            _G.ESP = true
+            while _G.ESP do
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= LP and v.Character and not v.Character:FindFirstChild("Highlight") then
+                        Instance.new("Highlight", v.Character).FillColor = Color3.fromRGB(0, 255, 255)
+                    end
+                end
+                task.wait(2)
+            end
+        end)
+
+        -- BOTÓN MINIMIZAR
+        local MiniBtn = Instance.new("TextButton", Orion)
+        MiniBtn.Size = UDim2.new(0, 50, 0, 50)
+        MiniBtn.Position = UDim2.new(0, 10, 0.5, 0)
+        MiniBtn.Text = "OPEN"
+        MiniBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+        MiniBtn.Visible = false
+        Instance.new("UICorner", MiniBtn).CornerRadius = UDim.new(1, 0)
+
+        local Close = Instance.new("TextButton", Main)
+        Close.Size = UDim2.new(0, 30, 0, 30)
+        Close.Position = UDim2.new(1, -35, 0, 10)
+        Close.Text = "-"
+        Close.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        Close.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Close.MouseButton1Click:Connect(function()
+            Main.Visible = false
+            MiniBtn.Visible = true
+        end)
+
+        MiniBtn.MouseButton1Click:Connect(function()
+            Main.Visible = true
+            MiniBtn.Visible = false
+        end)
+    else
+        KeyBox.Text = "KEY INCORRECTA"
+        task.wait(1)
+        KeyBox.Text = ""
+    end
+end)
