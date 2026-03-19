@@ -1,0 +1,153 @@
+-- CENTRAL HACK APK MOD V1.0 - BY MAZAXE YT
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+-- Configuración Inicial (Todo en OFF)
+_G.HitboxSize = 2
+_G.AtivarHitbox = false
+_G.EspBox = false
+_G.EspName = false
+_G.EspLine = false
+_G.Color = Color3.fromRGB(255, 0, 150) -- Rosa Neón
+local MiKey = "MAZAXE-" .. math.random(100, 999)
+
+-- 1. SISTEMA DE KEY (CUADRO INICIAL)
+local KeyGui = Instance.new("ScreenGui", game.CoreGui)
+local KeyFrame = Instance.new("Frame", KeyGui)
+KeyFrame.Size = UDim2.new(0, 300, 0, 200)
+KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+KeyFrame.BorderSizePixel = 2
+KeyFrame.BorderColor3 = Color3.fromRGB(150, 0, 255)
+
+local KeyInput = Instance.new("TextBox", KeyFrame)
+KeyInput.PlaceholderText = "Escribe la Key aquí..."
+KeyInput.Size = UDim2.new(0.8, 0, 0, 40)
+KeyInput.Position = UDim2.new(0.1, 0, 0.3, 0)
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeyInput.TextColor3 = Color3.new(1, 1, 1)
+
+local GenBtn = Instance.new("TextButton", KeyFrame)
+GenBtn.Text = "GENERAR KEY (COPIAR)"
+GenBtn.Size = UDim2.new(0.8, 0, 0, 35)
+GenBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+GenBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 150)
+GenBtn.TextColor3 = Color3.new(1, 1, 1)
+
+local EntrarBtn = Instance.new("TextButton", KeyFrame)
+EntrarBtn.Text = "ENTRAR AL SCRIPT"
+EntrarBtn.Size = UDim2.new(0.8, 0, 0, 35)
+EntrarBtn.Position = UDim2.new(0.1, 0, 0.75, 0)
+EntrarBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+EntrarBtn.TextColor3 = Color3.new(1, 1, 1)
+
+GenBtn.MouseButton1Click:Connect(function()
+    setclipboard(MiKey)
+    GenBtn.Text = "¡COPIADA: " .. MiKey .. "!"
+end)
+
+EntrarBtn.MouseButton1Click:Connect(function()
+    if KeyInput.Text == MiKey then
+        KeyGui:Destroy()
+        iniciarMain()
+    else
+        EntrarBtn.Text = "KEY INCORRECTA"
+        task.wait(1)
+        EntrarBtn.Text = "ENTRAR AL SCRIPT"
+    end
+end)
+
+-- 2. MENÚ PRINCIPAL (SE ACTIVA TRAS LA KEY)
+function iniciarMain()
+    local MainGui = Instance.new("ScreenGui", game.CoreGui)
+    local Main = Instance.new("Frame", MainGui)
+    Main.Size = UDim2.new(0, 250, 0, 380)
+    Main.Position = UDim2.new(0.5, -125, 0.5, -190)
+    Main.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+    Main.BorderSizePixel = 2
+    Main.BorderColor3 = Color3.fromRGB(150, 0, 255)
+    Main.Visible = false
+
+    -- Barra Superior Morada
+    local TitleBar = Instance.new("Frame", Main)
+    TitleBar.Size = UDim2.new(1, 0, 0, 30)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(150, 0, 255)
+    local TitleText = Instance.new("TextLabel", TitleBar)
+    TitleText.Text = "▼ CENTRAL HACK APK MOD V1.0"
+    TitleText.Size = UDim2.new(1, 0, 1, 0); TitleText.TextColor3 = Color3.new(1,1,1); TitleText.BackgroundTransparency = 1
+
+    -- Botón Circular Arrancable
+    local MenuBtn = Instance.new("ImageButton", MainGui)
+    MenuBtn.Size = UDim2.new(0, 55, 0, 55); MenuBtn.Position = UDim2.new(0, 10, 0.5, 0)
+    MenuBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 255); MenuBtn.Image = "rbxassetid://6031068433"
+    Instance.new("UICorner", MenuBtn).CornerRadius = UDim.new(1, 0)
+    MenuBtn.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
+
+    local Scroll = Instance.new("ScrollingFrame", Main)
+    Scroll.Size = UDim2.new(1, -10, 1, -40); Scroll.Position = UDim2.new(0, 5, 0, 35); Scroll.BackgroundTransparency = 1
+    Instance.new("UIListLayout", Scroll).Padding = UDim.new(0, 5)
+
+    -- Cuadro para tamaño de Hitbox
+    local BoxSize = Instance.new("TextBox", Scroll)
+    BoxSize.Size = UDim2.new(1, -10, 0, 35)
+    BoxSize.PlaceholderText = "TAMAÑO HITBOX (Escribe número)"
+    BoxSize.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    BoxSize.TextColor3 = Color3.new(1, 1, 1)
+    BoxSize.FocusLost:Connect(function() _G.HitboxSize = tonumber(BoxSize.Text) or 2 end)
+
+    local function NewToggle(txt, callback)
+        local btn = Instance.new("TextButton", Scroll)
+        btn.Size = UDim2.new(1, -10, 0, 35); btn.Text = "[OFF] " .. txt; btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20); btn.TextColor3 = Color3.new(1, 1, 1)
+        local state = false
+        btn.MouseButton1Click:Connect(function()
+            state = not state
+            btn.Text = state and "[ON] " .. txt or "[OFF] " .. txt
+            btn.TextColor3 = state and _G.Color or Color3.new(1, 1, 1); callback(state)
+        end)
+    end
+
+    NewToggle("Activar Hitbox", function(v) _G.AtivarHitbox = v end)
+    NewToggle("ESP Box Rosa", function(v) _G.EspBox = v end)
+    NewToggle("ESP Nombre Rosa", function(v) _G.EspName = v end)
+    NewToggle("Line ESP Rosa", function(v) _G.EspLine = v end)
+
+    -- 3. MOTOR DE FUNCIONES
+    RunService.RenderStepped:Connect(function()
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character then
+                -- Hitbox Normal (Cualquier parte o cuerpo)
+                local root = plr.Character:FindFirstChild("HumanoidRootPart")
+                if _G.AtivarHitbox and root and plr.Character.Humanoid.Health > 0 then
+                    root.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                    root.Transparency = 0.7; root.CanCollide = false
+                elseif root then
+                    root.Size = Vector3.new(2, 2, 1); root.Transparency = 1
+                end
+
+                -- ESP Box
+                local h = plr.Character:FindFirstChild("MazHigh")
+                if _G.EspBox and plr.Character.Humanoid.Health > 0 then
+                    if not h then
+                        h = Instance.new("Highlight", plr.Character); h.Name = "MazHigh"
+                        h.FillColor = _G.Color; h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    end
+                elseif h then h:Destroy() end
+
+                -- ESP Name & Distance
+                local tag = plr.Character:FindFirstChild("MazTag")
+                if _G.EspName and plr.Character.Humanoid.Health > 0 then
+                    if not tag then
+                        tag = Instance.new("BillboardGui", plr.Character); tag.Name = "MazTag"
+                        tag.AlwaysOnTop = true; tag.Size = UDim2.new(0,100,0,50); tag.ExtentsOffset = Vector3.new(0,3,0)
+                        local t = Instance.new("TextLabel", tag); t.Size = UDim2.new(1,0,1,0); t.BackgroundTransparency = 1
+                        t.TextColor3 = _G.Color; t.Font = "GothamBold"
+                    end
+                    local dist = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - root.Position).Magnitude)
+                    tag.TextLabel.Text = plr.Name .. " [" .. dist .. "m]"
+                elseif tag then tag:Destroy() end
+            end
+        end
+    end)
+end
