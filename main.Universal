@@ -1,0 +1,68 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+
+-- 1. PANTALLA DE CARGA (Estilo la imagen que enviaste)
+local sg = Instance.new("ScreenGui", game.CoreGui)
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(1, 0, 1, 0)
+main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+
+local barBackground = Instance.new("Frame", main)
+barBackground.Size = UDim2.new(0.4, 0, 0.02, 0)
+barBackground.Position = UDim2.new(0.3, 0, 0.55, 0)
+barBackground.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+
+local barProgress = Instance.new("Frame", barBackground)
+barProgress.Size = UDim2.new(0, 0, 1, 0)
+barProgress.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+local loadText = Instance.new("TextLabel", main)
+loadText.Size = UDim2.new(0.4, 0, 0.05, 0)
+loadText.Position = UDim2.new(0.3, 0, 0.5, 0)
+loadText.BackgroundTransparency = 1
+loadText.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadText.Text = "Loading: 0%"
+
+-- Simulación de carga
+for i = 0, 100, 2 do
+    barProgress.Size = UDim2.new(i/100, 0, 1, 0)
+    loadText.Text = "Loading: "..i.."%"
+    task.wait(0.05)
+end
+main:Destroy() -- Elimina la carga al terminar
+
+-- 2. LÓGICA DE AIMBOT (Pecho)
+_G.Aimbot = true
+RunService.RenderStepped:Connect(function()
+    if _G.Aimbot then
+        local target = nil
+        local dist = math.huge
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("UpperTorso") then
+                local mag = (v.Character.UpperTorso.Position - LocalPlayer.Character.UpperTorso.Position).Magnitude
+                if mag < dist then
+                    dist = mag
+                    target = v
+                end
+            end
+        end
+        if target then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.UpperTorso.Position)
+        end
+    end
+end)
+
+-- 3. LÓGICA DE ESP (Cajas básicas)
+local function createESP(plr)
+    local box = Instance.new("Highlight", game.CoreGui)
+    box.Adornee = plr.Character
+    box.FillTransparency = 0.5
+    box.OutlineColor = Color3.fromRGB(255, 0, 0)
+end
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Wait()
+    createESP(plr)
+end)
