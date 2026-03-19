@@ -1,0 +1,87 @@
+-- MAZAXE YT VIP - SISTEMA AUTO-ACTIVABLE
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+_G.SilentAim = true -- Activado por defecto
+_G.EspRosa = true
+_G.HitboxSize = 15 -- Tamaño de la cabeza/pecho para no fallar
+
+-- 1. MENÚ ROSA (CONSOLA DE CONTROL)
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 240, 0, 300)
+Main.Position = UDim2.new(0.1, 0, 0.1, 0)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Main.Visible = false
+Instance.new("UICorner", Main)
+
+local MenuBtn = Instance.new("ImageButton", ScreenGui)
+MenuBtn.Size = UDim2.new(0, 50, 0, 50)
+MenuBtn.Position = UDim2.new(0, 10, 0.5, 0)
+MenuBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 180)
+MenuBtn.Image = "rbxassetid://6031068433"
+Instance.new("UICorner", MenuBtn).CornerRadius = UDim.new(1, 0)
+MenuBtn.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
+
+-- 2. MOTOR DE AUTO-APLICACIÓN (ESTO ES LO QUE BUSCABAS)
+local function aplicarEfectos(plr)
+    if plr == LocalPlayer then return end
+
+    plr.CharacterAdded:Connect(function(char)
+        task.wait(0.5) -- Espera a que el personaje cargue bien
+        
+        -- Aplicar ESP Rosa Automático
+        if _G.EspRosa then
+            local h = Instance.new("Highlight", char)
+            h.Name = "MazAxeHigh"
+            h.FillColor = Color3.fromRGB(255, 0, 180)
+            h.OutlineColor = Color3.new(1, 1, 1)
+            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        end
+    end)
+end
+
+-- Escuchar a todos los jugadores que entren o ya estén
+for _, p in pairs(Players:GetPlayers()) do aplicarEfectos(p) end
+Players.PlayerAdded:Connect(aplicarEfectos)
+
+-- 3. BUCLE DE SILENT AIM (HITBOX INVISIBLE)
+-- Se ejecuta 60 veces por segundo para asegurar que siempre tengan la hitbox grande
+RunService.Heartbeat:Connect(function()
+    if _G.SilentAim then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character then
+                local head = plr.Character:FindFirstChild("Head")
+                local hum = plr.Character:FindFirstChild("Humanoid")
+                
+                if head and hum and hum.Health > 0 then
+                    head.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                    head.Transparency = 0.6 -- Se ve un poco para saber dónde disparar
+                    head.CanCollide = false
+                    head.Massless = true
+                end
+            end
+        end
+    end
+end)
+
+-- 4. LÍNEAS ESP ROSA (ACTUALIZACIÓN CONSTANTE)
+RunService.RenderStepped:Connect(function()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local line = plr.Character:FindFirstChild("MazLine")
+            if _G.EspRosa and plr.Character.Humanoid.Health > 0 then
+                if not line then
+                    line = Instance.new("Beam", plr.Character)
+                    line.Name = "MazLine"
+                    local a0 = Instance.new("Attachment", plr.Character.HumanoidRootPart)
+                    local a1 = Instance.new("Attachment", LocalPlayer.Character.HumanoidRootPart or LocalPlayer.Character:WaitForChild("HumanoidRootPart"))
+                    line.Attachment0 = a0; line.Attachment1 = a1
+                    line.Color = ColorSequence.new(Color3.fromRGB(255, 0, 180))
+                    line.Width0 = 0.1; line.Width1 = 0.1
+                end
+            elseif line then line:Destroy() end
+        end
+    end
+end)
