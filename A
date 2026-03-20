@@ -1,0 +1,131 @@
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+
+-- Interfaz Principal
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 220, 0, 280)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -140)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(0, 170, 255)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Título
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Text = "MAZ HUB"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+
+-- Botón Minimizar
+local MiniBtn = Instance.new("TextButton", MainFrame)
+MiniBtn.Text = "-"
+MiniBtn.Size = UDim2.new(0, 30, 0, 30)
+MiniBtn.Position = UDim2.new(1, -35, 0, 5)
+MiniBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MiniBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local Container = Instance.new("Frame", MainFrame)
+Container.Size = UDim2.new(1, -20, 1, -60)
+Container.Position = UDim2.new(0, 10, 0, 50)
+Container.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout", Container)
+layout.Padding = UDim.new(0, 10)
+
+-- Función para crear botones
+local function CreateButton(txt, callback)
+    local btn = Instance.new("TextButton", Container)
+    btn.Text = txt .. ": OFF"
+    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = txt .. (state and ": ON" or ": OFF")
+        btn.BackgroundColor3 = state and Color3.fromRGB(0, 100, 200) or Color3.fromRGB(35, 35, 35)
+        callback(state)
+    end)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+end
+
+--- LÓGICA MEJORADA ---
+
+-- 1. Silent Aim (Hitbox 60 e Invisible)
+local hitboxEnabled = false
+CreateButton("SILENT AIM", function(state)
+    hitboxEnabled = state
+    if not state then
+        -- Resetear hitboxes al desactivar
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 2)
+                v.Character.HumanoidRootPart.Transparency = 1 -- Totalmente invisible
+            end
+        end
+    end
+end)
+
+-- Bucle constante para aplicar el hitbox si está ON
+RunService.RenderStepped:Connect(function()
+    if hitboxEnabled then
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                v.Character.HumanoidRootPart.Transparency = 1 -- Invisible mientras está activo
+                v.Character.HumanoidRootPart.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- 2. ESP CHAMS (Asegura que se aplique a nuevos jugadores)
+CreateButton("ESP CHAMS", function(t)
+    _G.Chams = t
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character then
+            if t then
+                local h = Instance.new("Highlight", v.Character)
+                h.Name = "MAZ_CHAMS"
+                h.FillColor = Color3.fromRGB(0, 170, 255)
+            elseif v.Character:FindFirstChild("MAZ_CHAMS") then
+                v.Character.MAZ_CHAMS:Destroy()
+            end
+        end
+    end
+end)
+
+-- 3. ESP NAME
+CreateButton("ESP NAME", function(t)
+    _G.Names = t
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+            if t then
+                local b = Instance.new("BillboardGui", v.Character.Head)
+                b.Name = "MAZ_NAME"
+                b.AlwaysOnTop, b.Size = true, UDim2.new(0, 100, 0, 50)
+                local l = Instance.new("TextLabel", b)
+                l.Text, l.Size, l.BackgroundTransparency = v.Name, UDim2.new(1, 0, 1, 0), 1
+                l.TextColor3, l.TextStrokeTransparency = Color3.fromRGB(255, 255, 255), 0
+            elseif v.Character.Head:FindFirstChild("MAZ_NAME") then
+                v.Character.Head.MAZ_NAME:Destroy()
+            end
+        end
+    end
+end)
+
+-- Lógica Minimizar
+local min = false
+MiniBtn.MouseButton1Click:Connect(function()
+    min = not min
+    Container.Visible = not min
+    MainFrame:TweenSize(min and UDim2.new(0, 220, 0, 45) or UDim2.new(0, 220, 0, 280), "Out", "Quad", 0.3)
+end)
