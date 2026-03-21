@@ -1,0 +1,110 @@
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Container = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+local MinimizeButton = Instance.new("TextButton")
+local FloatingButton = Instance.new("TextButton")
+
+-- Propiedades del Menú Principal
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "DeltaCustomMenu"
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- Fondo Dark
+MainFrame.BorderColor3 = Color3.fromRGB(255, 100, 0) -- Borde Naranja Neon
+MainFrame.BorderSizePixel = 2
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 250, 0, 300)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "DELTA NEON HUB"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Title.TextSize = 18
+
+MinimizeButton.Parent = MainFrame
+MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
+MinimizeButton.Position = UDim2.new(0.85, 0, 0, 5)
+MinimizeButton.Text = "-"
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+MinimizeButton.TextColor3 = Color3.new(1,1,1)
+
+-- Botón Flotante (Cerrado)
+FloatingButton.Parent = ScreenGui
+FloatingButton.Size = UDim2.new(0, 60, 0, 60)
+FloatingButton.Position = UDim2.new(0.1, 0, 0.1, 0)
+FloatingButton.Text = "MENU"
+FloatingButton.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+FloatingButton.TextColor3 = Color3.new(1,1,1)
+FloatingButton.Visible = false
+FloatingButton.Draggable = true
+
+-- Lógica Minimize
+MinimizeButton.MouseButton1Click:Connect(function()
+	MainFrame.Visible = false
+	FloatingButton.Visible = true
+end)
+
+FloatingButton.MouseButton1Click:Connect(function()
+	MainFrame.Visible = true
+	FloatingButton.Visible = false
+end)
+
+-- Contenedor de Opciones
+Container.Parent = MainFrame
+Container.Position = UDim2.new(0, 10, 0, 50)
+Container.Size = UDim2.new(0, 230, 0, 230)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 2, 0)
+
+UIListLayout.Parent = Container
+UIListLayout.Padding = UDim.new(0, 10)
+
+-- --- FUNCIONES ---
+
+-- 1. Hitbox (Slider Simple)
+local HitboxVal = 10
+local HitBtn = Instance.new("TextButton", Container)
+HitBtn.Size = UDim2.new(1, 0, 0, 40)
+HitBtn.Text = "Hitbox: 10 (Blanca)"
+HitBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+HitBtn.TextColor3 = Color3.new(1,1,1)
+
+HitBtn.MouseButton1Click:Connect(function()
+    if HitboxVal == 10 then HitboxVal = 20 HitBtn.Text = "Hitbox: 20"
+    elseif HitboxVal == 20 then HitboxVal = 30 HitBtn.Text = "Hitbox: 30"
+    else HitboxVal = 10 HitBtn.Text = "Hitbox: 10" end
+    
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            v.Character.HumanoidRootPart.Size = Vector3.new(HitboxVal, HitboxVal, HitboxVal)
+            v.Character.HumanoidRootPart.BrickColor = BrickColor.new("White")
+            v.Character.HumanoidRootPart.Transparency = 0.7
+            v.Character.HumanoidRootPart.CanCollide = false
+        end
+    end
+end)
+
+-- 2. Fly & NoClip (Simple)
+local FlyBtn = Instance.new("TextButton", Container)
+FlyBtn.Size = UDim2.new(1, 0, 0, 40)
+FlyBtn.Text = "Activar Fly/NoClip"
+FlyBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+FlyBtn.TextColor3 = Color3.new(1,1,1)
+
+FlyBtn.MouseButton1Click:Connect(function()
+    local char = game.Players.LocalPlayer.Character
+    char.HumanoidRootPart.Velocity = Vector3.new(0, 50, 0) -- Impulso básico
+    game:GetService("RunService").Stepped:Connect(function()
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end)
+end)
+
+print("Menu cargado con éxito")
