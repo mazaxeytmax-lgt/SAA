@@ -1,0 +1,150 @@
+-- // SERVICIOS
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- // CONFIGURACIÓN
+local Config = {
+    Aimbot = false,
+    ESP = false,
+    FOV_Visible = false,
+    FOV_Radius = 150,
+    Smoothness = 10
+}
+
+-- // 1. INTERFAZ (By Mazscriptsroblox)
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 220, 0, 380)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 0
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "UNIVERSAL By Mazscriptsroblox"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Title.Font = Enum.Font.SourceSansBold
+
+-- Botones
+local function CreateButton(txt, pos, key)
+    local btn = Instance.new("TextButton", MainFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 45)
+    btn.Position = pos
+    btn.Text = txt .. ": OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.SourceSansBold
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+    btn.MouseButton1Click:Connect(function()
+        Config[key] = not Config[key]
+        btn.Text = txt .. (Config[key] and ": ON" or ": OFF")
+        btn.BackgroundColor3 = Config[key] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(35, 35, 35)
+    end)
+end
+
+CreateButton("AIMBOT", UDim2.new(0.05, 0, 0.15, 0), "Aimbot")
+CreateButton("ESP (3-IN-1)", UDim2.new(0.05, 0, 0.30, 0), "ESP")
+CreateButton("SHOW FOV", UDim2.new(0.05, 0, 0.45, 0), "FOV_Visible")
+
+-- Cuadro de Smooth
+local SmoothInput = Instance.new("TextBox", MainFrame)
+SmoothInput.Size = UDim2.new(0.3, 0, 0, 30)
+SmoothInput.Position = UDim2.new(0.6, 0, 0.62, 0)
+SmoothInput.Text = "10"
+SmoothInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SmoothInput.TextColor3 = Color3.fromRGB(0, 255, 255)
+SmoothInput.FocusLost:Connect(function() Config.Smoothness = tonumber(SmoothInput.Text) or 10 end)
+
+-- // 2. LÓGICA DEL SKELETON (Huesos)
+local function CreateLine()
+    local l = Drawing.new("Line")
+    l.Color = Color3.new(1, 1, 1)
+    l.Thickness = 1
+    l.Visible = false
+    return l
+end
+
+local function GetSkeleton(char)
+    local lines = {}
+    for i=1, 15 do lines[i] = CreateLine() end
+    
+    local connections = {
+        {"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"},
+        {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"},
+        {"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"},
+        {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"},
+        {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}
+    }
+
+    return function()
+        if not Config.ESP then for _,l in pairs(lines) do l.Visible = false end return end
+        for i, v in pairs(connections) do
+            local p1, p2 = char:FindFirstChild(v[1]), char:FindFirstChild(v[2])
+            if p1 and p2 then
+                local pos1, on1 = Camera:WorldToViewportPoint(p1.Position)
+                local pos2, on2 = Camera:WorldToViewportPoint(p2.Position)
+                if on1 and on2 then
+                    lines[i].Visible = true
+                    lines[i].From = Vector2.new(pos1.X, pos1.Y)
+                    lines[i].To = Vector2.new(pos2.X, pos2.Y)
+                else lines[i].Visible = false end
+            else lines[i].Visible = false end
+        end
+    end
+end
+
+-- // 3. ESP COMPLETO
+local function CreateESP(p)
+    local Box = Drawing.new("Square")
+    Box.Filled, Box.Color, Box.Transparency = true, Color3.new(1,1,1), 0.3
+    local Tracer = Drawing.new("Line")
+    Tracer.Color = Color3.new(1,1,1)
+    local skelUpdate = nil
+
+    RunService.RenderStepped:Connect(function()
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") and Config.ESP and p ~= LocalPlayer then
+            if not skelUpdate then skelUpdate = GetSkeleton(p.Character) end
+            skelUpdate()
+            
+            local root = p.Character.HumanoidRootPart
+            local pos, on = Camera:WorldToViewportPoint(root.Position)
+            if on then
+                Box.Visible = true
+                Box.Size = Vector2.new(1300/pos.Z, 1800/pos.Z)
+                Box.Position = Vector2.new(pos.X - Box.Size.X/2, pos.Y - Box.Size.Y/2)
+                Tracer.Visible = true
+                Tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                Tracer.To = Vector2.new(pos.X, pos.Y)
+            else Box.Visible, Tracer.Visible = false, false end
+        else Box.Visible, Tracer.Visible = false, false end
+    end)
+end
+
+for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
+Players.PlayerAdded:Connect(CreateESP)
+
+-- // 4. FOV Y AIMBOT
+local FOV = Drawing.new("Circle")
+FOV.Color, FOV.Filled = Color3.new(1,1,1), false
+
+RunService.RenderStepped:Connect(function()
+    FOV.Visible, FOV.Radius = Config.FOV_Visible, Config.FOV_Radius
+    FOV.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+    if Config.Aimbot then
+        local t, d = nil, Config.FOV_Radius
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character.Humanoid.Health > 0 then
+                local P, On = Camera:WorldToViewportPoint(p.Character.Head.Position)
+                if On then
+                    local mDist = (Vector2.new(P.X, P.Y) - FOV.Position).Magnitude
+                    if mDist < d then d = mDist t = p.Character.Head end
+                end
+            end
+        end
+        if t then Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, t.Position), 1/(Config.Smoothness or 10)) end
+    end
+end)
