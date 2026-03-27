@@ -1,0 +1,136 @@
+--// Configuración Inicial
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local AimbotBtn = Instance.new("TextButton")
+local EspBtn = Instance.new("TextButton")
+local SmoothSlider = Instance.new("TextBox")
+local UICorner = Instance.new("UICorner")
+
+--// Variables de Estado
+local AimbotEnabled = false
+local EspEnabled = false
+local Smoothness = 0.1 -- Valor por defecto del Smooth
+
+--// Estilo Dark Neon
+ScreenGui.Parent = game.CoreGui
+MainFrame.Name = "NeonMenu"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -100)
+MainFrame.Size = UDim2.new(0, 200, 0, 250)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Thickness = 2
+Stroke.Color = Color3.fromRGB(0, 255, 255) -- Cyan Neon
+Stroke.Parent = MainFrame
+
+Title.Parent = MainFrame
+Title.Text = "DARK NEON - DELTA"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+
+--// Funcionalidad: ESP Chams (Permanente)
+local function CreateChams(player)
+    if player.Character then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ChamEffect"
+        highlight.Parent = player.Character
+        highlight.FillColor = Color3.fromRGB(255, 0, 255) -- Magenta Neon
+        highlight.OutlineColor = Color3.new(1, 1, 1)
+        highlight.FillTransparency = 0.5
+    end
+end
+
+--// Bucle de ESP
+game:GetService("RunService").RenderStepped:Connect(function()
+    if EspEnabled then
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= game.Players.LocalPlayer and p.Character then
+                if not p.Character:FindFirstChild("ChamEffect") then
+                    CreateChams(p)
+                end
+            end
+        end
+    else
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Character and p.Character:FindFirstChild("ChamEffect") then
+                p.Character.ChamEffect:Destroy()
+            end
+        end
+    end
+end)
+
+--// Funcionalidad: Aimbot con Smooth
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if AimbotEnabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local closestPlayer = nil
+        local shortestDistance = math.huge
+
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+                if onScreen then
+                    local distance = (Vector2.new(pos.X, pos.Y) - UserInputService:GetMouseLocation()).Magnitude
+                    if distance < shortestDistance then
+                        closestPlayer = player
+                        shortestDistance = distance
+                    end
+                end
+            end
+        end
+
+        if closestPlayer then
+            local targetPos = Camera:WorldToViewportPoint(closestPlayer.Character.HumanoidRootPart.Position)
+            local mousePos = UserInputService:GetMouseLocation()
+            -- Aplicación del Smooth
+            mousemoverel((targetPos.X - mousePos.X) * Smoothness, (targetPos.Y - mousePos.Y) * Smoothness)
+        end
+    end
+end)
+
+--// Configuración de Botones del Menú
+AimbotBtn.Parent = MainFrame
+AimbotBtn.Text = "Aimbot: OFF"
+AimbotBtn.Size = UDim2.new(0.8, 0, 0, 35)
+AimbotBtn.Position = UDim2.new(0.1, 0, 0.2, 0)
+AimbotBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+AimbotBtn.TextColor3 = Color3.new(1, 1, 1)
+AimbotBtn.MouseButton1Click:Connect(function()
+    AimbotEnabled = not AimbotEnabled
+    AimbotBtn.Text = AimbotEnabled and "Aimbot: ON" or "Aimbot: OFF"
+    AimbotBtn.TextColor3 = AimbotEnabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+end)
+
+EspBtn.Parent = MainFrame
+EspBtn.Text = "ESP Chams: OFF"
+EspBtn.Size = UDim2.new(0.8, 0, 0, 35)
+EspBtn.Position = UDim2.new(0.1, 0, 0.4, 0)
+EspBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+EspBtn.TextColor3 = Color3.new(1, 1, 1)
+EspBtn.MouseButton1Click:Connect(function()
+    EspEnabled = not EspEnabled
+    EspBtn.Text = EspEnabled and "ESP: ON" or "ESP: OFF"
+end)
+
+SmoothSlider.Parent = MainFrame
+SmoothSlider.PlaceholderText = "Smooth (0.1 - 1.0)"
+SmoothSlider.Text = "0.1"
+SmoothSlider.Size = UDim2.new(0.8, 0, 0, 35)
+SmoothSlider.Position = UDim2.new(0.1, 0, 0.6, 0)
+SmoothSlider.FocusLost:Connect(function()
+    local val = tonumber(SmoothSlider.Text)
+    if val then
+        Smoothness = math.clamp(val, 0.01, 1)
+    end
+end)
